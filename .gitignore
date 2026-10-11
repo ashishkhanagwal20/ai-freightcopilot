@@ -1,0 +1,11 @@
+.env
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+dist/
+build/
+learning.md
+agents.md
+past_info/overall_project.md

@@ -1,0 +1,7 @@
+"Every request into the platform hits the API Gateway's rate limiter before it touches any business logic. The problem was that enterprise shippers run automated polling scripts, and on top of that, bad actors could hammer our search and upload endpoints with thousands of concurrent requests.
+
+I built a sliding-window rate limiter backed by Redis. For each request, the gateway pulls the client's API key, then runs a Lua script atomically inside Redis — it purges timestamps older than 60 seconds from a sorted set, counts how many requests are still in that window, and adds the current timestamp if the client's under quota. I did this as one atomic Lua script instead of separate read-then-write calls specifically to avoid a race condition between checking the count and incrementing it. The whole check runs in under 2 milliseconds and holds up at 20,000+ requests per second.
+
+I also built in a fail-open circuit breaker: if Redis hits a network partition or a call takes longer than 15 milliseconds, the breaker trips and lets the request through rather than blocking it — a false rejection costs revenue, a brief gap in rate limiting doesn't — and it fires an alert to Datadog so the team knows immediately."
+
+Redis (Sorted Sets) + Lua scripting, FastAPI gateway, circuit breaker pattern, Datadog for alerting.

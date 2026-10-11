@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#f5f7f8" />
+    <title>FreightCopilot</title>
+    <link rel="stylesheet" href="/static/styles.css" />
+    <script src="/static/app.js" defer></script>
+  </head>
+  <body>
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="FreightCopilot home">
+        <span class="brand-mark" aria-hidden="true">F</span>
+        <span>Freight<span class="brand-light">Copilot</span></span>
+      </a>
+      <div class="topbar-right">
+        <span class="environment-label"><span class="live-dot"></span> LOCAL DEMO</span>
+        <a class="docs-link" href="/docs" target="_blank" rel="noreferrer">API docs ↗</a>
+      </div>
+    </header>
+
+    <main class="shell">
+      <section class="intro">
+        <div>
+          <p class="eyebrow">FREIGHT OPERATIONS WORKSPACE</p>
+          <h1>Good day. What are we moving?</h1>
+          <p class="intro-copy">Ask freight documents, check a carrier, and review booking proposals in one place.</p>
+        </div>
+        <button class="button button-secondary refresh-button" id="refresh-all" type="button">
+          <span aria-hidden="true">↻</span> Refresh status
+        </button>
+      </section>
+
+      <section class="service-strip" aria-label="Dependency status">
+        <article class="service-card" id="service-postgres">
+          <span class="service-icon">DB</span>
+          <span class="service-copy"><strong>Postgres</strong><small class="service-state">Checking…</small></span>
+          <span class="status-light status-unknown"></span>
+        </article>
+        <article class="service-card" id="service-redis">
+          <span class="service-icon">R</span>
+          <span class="service-copy"><strong>Redis</strong><small class="service-state">Checking…</small></span>
+          <span class="status-light status-unknown"></span>
+        </article>
+        <article class="service-card" id="service-kafka">
+          <span class="service-icon">K</span>
+          <span class="service-copy"><strong>Kafka</strong><small class="service-state">Checking…</small></span>
+          <span class="status-light status-unknown"></span>
+        </article>
+      </section>
+
+      <section class="panel workflow-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">TYPED LANGGRAPH WORKFLOW</p>
+            <h2>Check a load</h2>
+          </div>
+          <span class="pill pill-purple">Matchmaking → HOS review</span>
+        </div>
+        <p class="panel-description">Checks carrier equipment, weight, hazmat, pickup notice, and the fictional HOS policy. Driver figures below are demo inputs, not live ELD data.</p>
+        <form id="workflow-form" class="workflow-form">
+          <label>Load ID<input id="check-load-id" maxlength="80" required /></label>
+          <label>Carrier ID<input id="check-carrier-id" value="CARRIER-014" maxlength="80" required /></label>
+          <label>Equipment
+            <select id="check-equipment">
+              <option value="dry_van">Dry van</option>
+              <option value="reefer">Reefer</option>
+              <option value="flatbed">Flatbed</option>
+            </select>
+          </label>
+          <label>Weight (lbs)<input id="check-weight" type="number" min="1" value="38000" required /></label>
+          <label>Origin<input id="check-origin" value="Chicago, IL" maxlength="160" required /></label>
+          <label>Destination<input id="check-destination" value="Columbus, OH" maxlength="160" required /></label>
+          <label>Pickup time<input id="check-pickup" type="datetime-local" required /></label>
+          <label>Delivery time<input id="check-delivery" type="datetime-local" required /></label>
+          <label class="checkbox-label"><input id="check-hazmat" type="checkbox" /> Hazmat load</label>
+          <details class="hos-fields">
+            <summary>Driver and route context <span>(synthetic demo values)</span></summary>
+            <div class="hos-grid">
+              <label>Estimated driving hours<input id="check-estimated-hours" type="number" min="0" step="0.1" value="7.5" required /></label>
+              <label>Hours driven since qualifying rest<input id="check-rest-hours" type="number" min="0" step="0.1" value="2" required /></label>
+              <label>Hours since last 30-minute break<input id="check-break-hours" type="number" min="0" step="0.1" value="2" required /></label>
+              <label class="checkbox-label"><input id="check-break-scheduled" type="checkbox" checked /> Break scheduled before 8-hour limit</label>
+            </div>
+          </details>
+          <div class="workflow-actions">
+            <span class="helper-text">HOS outcome remains review when required driver context or policy evidence is missing.</span>
+            <button class="button button-primary" type="submit">Run load checks <span aria-hidden="true">→</span></button>
+          </div>
+        </form>
+        <div class="workflow-result" id="workflow-result" aria-live="polite">
+          <p class="empty-state">Matchmaking and compliance findings will appear here.</p>
+        </div>
+      </section>
+
+      <section class="panel pdf-panel">
+        <div class="panel-heading">
+          <div>
+            <p class="eyebrow">DOCUMENT EXTRACTION</p>
+            <h2>Extract load details from a PDF</h2>
+          </div>
+          <span class="pill">Gemini · Pydantic</span>
+        </div>
+        <p class="panel-description">Upload a selectable-text rate confirmation, up to 8 MB. Scanned-image OCR is not included. The document is treated as untrusted input; missing or unclear values should remain null.</p>
+        <form id="pdf-form" class="pdf-form">
+          <label for="pdf-file">Rate confirmation PDF</label>
+          <input id="pdf-file" type="file" accept="application/pdf,.pdf" required />
+          <span class="helper-text">Extraction sends document text to your configured Gemini model.</span>
+          <button class="button button-secondary" type="submit">Extract structured fields</button>
+        </form>
+        <div class="notice" id="pdf-notice" role="status" hidden></div>
+        <div class="workflow-result" id="pdf-result" aria-live="polite">
+          <p class="empty-state">Validated extraction JSON will appear here.</p>
+        </div>
+      </section>
+
+      <div class="dashboard-grid">
+        <section class="panel rag-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">KNOWLEDGE BASE</p>
+              <h2>Ask the documents</h2>
+            </div>
+            <span class="pill">RAG · streaming</span>
+          </div>
+          <p class="panel-description">Answers are grounded in the fictional carrier, rate, SOP, and compliance documents.</p>
+          <form id="rag-form" class="stack-form">
+            <label for="rag-question">Your question</label>
+            <textarea id="rag-question" rows="3" maxlength="2000" required placeholder="When is a driver required to take a break?"></textarea>
+            <div class="form-actions">
+              <span class="helper-text">Citations appear in the answer when evidence is found.</span>
+              <button class="button button-primary" type="submit">Ask FreightCopilot <span aria-hidden="true">→</span></button>
+            </div>
+          </form>
+          <div class="result-box" id="rag-result" aria-live="polite">
+            <p class="empty-state">Your answer will appear here.</p>
+          </div>
+        </section>
+
+        <section class="panel agent-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">MCP TOOLING</p>
+              <h2>Talk to the freight agent</h2>
+            </div>
+            <span class="pill pill-purple">Agent · SSE</span>
+          </div>
+          <p class="panel-description">Ask about a carrier or provide complete details to create a proposal for human review.</p>
+          <form id="agent-form" class="stack-form">
+            <label for="agent-question">Message</label>
+            <textarea id="agent-question" rows="3" maxlength="2000" required placeholder="What equipment and weight can CARRIER-014 handle?"></textarea>
+            <div class="form-actions">
+              <span class="helper-text">Tool activity streams below.</span>
+              <button class="button button-primary" type="submit">Send to agent <span aria-hidden="true">→</span></button>
+            </div>
+          </form>
+          <div class="event-log" id="agent-events" aria-live="polite">
+            <p class="empty-state">Agent progress and tool results will appear here.</p>
+          </div>
+        </section>
+
+        <section class="panel approvals-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">HUMAN IN THE LOOP</p>
+              <h2>Approval inbox <span class="count-badge" id="pending-count">0</span></h2>
+            </div>
+            <button class="text-button" id="refresh-approvals" type="button">Refresh</button>
+          </div>
+          <p class="panel-description">Review proposal details before approving. Approval creates a mock booking and Kafka outbox event.</p>
+          <div class="approval-list" id="approval-list" aria-live="polite">
+            <p class="empty-state">Loading pending proposals…</p>
+          </div>
+          <div class="event-monitor-heading">
+            <div>
+              <p class="eyebrow">KAFKA DELIVERY</p>
+              <h3>Recent booking events</h3>
+            </div>
+            <button class="text-button" id="refresh-events" type="button">Refresh</button>
+          </div>
+          <div class="event-list" id="event-list" aria-live="polite">
+            <p class="empty-state">Loading event status…</p>
+          </div>
+        </section>
+
+        <section class="panel proposal-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="eyebrow">DEMO WORKFLOW</p>
+              <h2>Create a test proposal</h2>
+            </div>
+            <span class="pill pill-amber">Requires approval</span>
+          </div>
+          <p class="panel-description">Creates a pending proposal only. No booking is made until you approve it in the inbox.</p>
+          <form id="proposal-form" class="proposal-form">
+            <label>Load ID<input id="proposal-load-id" maxlength="80" required /></label>
+            <label>Carrier ID<input id="proposal-carrier-id" value="CARRIER-014" maxlength="80" required /></label>
+            <label>Rate (USD)<input id="proposal-rate" type="number" min="0.01" step="0.01" value="2450.00" required /></label>
+            <label>Pickup time<input id="proposal-pickup" type="datetime-local" required /></label>
+            <label>Delivery time<input id="proposal-delivery" type="datetime-local" required /></label>
+            <div class="form-actions proposal-actions">
+              <span class="helper-text">Times are sent with a timezone.</span>
+              <button class="button button-secondary" type="submit">Create pending proposal</button>
+            </div>
+          </form>
+          <div class="notice" id="proposal-notice" role="status" hidden></div>
+        </section>
+      </div>
+
+      <footer class="page-footer">
+        <span>FreightCopilot · fictional learning environment</span>
+        <span>Human approval is required before a mock booking is created.</span>
+      </footer>
+    </main>
+  </body>
+</html>

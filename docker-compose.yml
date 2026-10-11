@@ -1,0 +1,29 @@
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: freightcopilot-db
+    environment:
+      POSTGRES_DB: freightcopilot
+      POSTGRES_USER: freightcopilot
+      POSTGRES_PASSWORD: freightcopilot_dev
+    ports:
+      - "5433:5432"
+    volumes:
+      - freightcopilot_pgdata:/var/lib/postgresql/data
+
+  redis:
+    image: redis:7-alpine
+    container_name: freightcopilot-redis
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  kafka:
+    image: apache/kafka:4.1.2
+    container_name: freightcopilot-kafka
+    ports:
+      - "9092:9092"
+    restart: unless-stopped
+
+volumes:
+  freightcopilot_pgdata:

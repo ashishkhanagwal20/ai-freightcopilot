@@ -1,0 +1,57 @@
+[
+  {
+    "question": "When must a driver take a 30-minute break?",
+    "expected_document": "HOS-001",
+    "reference_answer": "A driver must take a 30-minute break after 8 cumulative hours of driving."
+  },
+  {
+    "question": "How many hours may a standard property-carrying driver drive after 10 consecutive hours off duty?",
+    "expected_document": "HOS-001",
+    "reference_answer": "A standard property-carrying driver may drive up to 11 hours after 10 consecutive hours off duty."
+  },
+  {
+    "question": "What should happen if the delivery schedule requires driving beyond HOS limits?",
+    "expected_document": "HOS-001",
+    "reference_answer": "Drivers must not accept a load if its delivery schedule requires driving beyond the applicable hours-of-service limits."
+  },
+  {
+    "question": "What is Northstar Freight's maximum dry-van cargo weight?",
+    "expected_document": "CARRIER-014",
+    "reference_answer": "Northstar Freight accepts dry-van loads up to 42,000 pounds."
+  },
+  {
+    "question": "How much pickup notice does Northstar Freight require?",
+    "expected_document": "CARRIER-014",
+    "reference_answer": "Northstar Freight requires 24 hours of notice before pickup."
+  },
+  {
+    "question": "When does Northstar Freight detention pay begin, and what evidence is required?",
+    "expected_document": "CARRIER-014",
+    "reference_answer": "Northstar Freight pays $50 per hour of detention after the first 2 hours at the shipper when timestamp evidence is recorded."
+  },
+  {
+    "question": "Can a carrier be booked without human approval of the final rate and appointments?",
+    "expected_document": "SOP-BOOK-003",
+    "reference_answer": "A human operator must approve the final carrier, rate, and appointment details before booking."
+  },
+  {
+    "question": "What proof of delivery and linehaul rate are listed for LOAD-1001?",
+    "expected_document": "RC-LOAD-1001",
+    "reference_answer": "LOAD-1001 has an agreed linehaul rate of $1,850.00 USD, and the carrier must provide signed proof of delivery after unloading."
+  },
+  {
+    "question": "What timestamps are needed to support detention under the accessorial policy?",
+    "expected_document": "ACCESSORIAL-001",
+    "reference_answer": "Detention requires recorded arrival and departure timestamps."
+  },
+  {
+    "question": "What information must a shipper provide for a reefer load?",
+    "expected_document": "EQUIPMENT-001",
+    "reference_answer": "For a reefer load, the shipper must state the target temperature and whether continuous or cycle operation is required."
+  },
+  {
+    "question": "Can the assistant decide liability for damaged freight?",
+    "expected_document": "SOP-CLAIMS-002",
+    "reference_answer": "The assistant must not decide liability or promise payment; the claim should be routed to a human claims specialist."
+  }
+]

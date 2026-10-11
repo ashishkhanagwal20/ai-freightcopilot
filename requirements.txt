@@ -1,0 +1,14 @@
+fastapi
+uvicorn[standard]
+psycopg[binary,pool]
+pgvector
+python-dotenv
+sentence-transformers
+google-genai
+httpx
+mcp[cli]>=2,<3
+langgraph>=1.0,<2.0
+langgraph-checkpoint-postgres>=3.0,<4.0
+redis>=5,<7
+confluent-kafka>=2.13,<3
+pymupdf>=1.25,<2
